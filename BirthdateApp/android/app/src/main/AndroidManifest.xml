@@ -1,16 +1,13 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
   package="com.birthdayapp">
 
-  <uses-permission android:name="android.permission.INTERNET"/>
-  <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
-  <uses-permission android:name="android.permission.READ_PHONE_STATE"/>
-  <uses-permission android:name="android.permission.READ_CALL_LOG"/>
-  <uses-permission android:name="android.permission.VIBRATE"/>
-  <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION"/>
-  <uses-permission android:name="android.permission.READ_CONTACTS"/>
-  <uses-permission android:name="android.permission.WRITE_CONTACTS"/>
-  <uses-permission android:name="android.permission.READ_CALENDAR"/>
-  <uses-permission android:name="android.permission.WRITE_CALENDAR"/>
+    <uses-permission android:name="android.permission.INTERNET"/> <!-- Доступ в интернет -->
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/> <!--Уведомления-->
+    <uses-permission android:name="android.permission.READ_PHONE_STATE"/> <!--Чтение состояния-->
+    <uses-permission android:name="android.permission.READ_CALL_LOG"/> <!--Чтение вызовов-->
+    <uses-permission android:name="android.permission.READ_CONTACTS"/> <!--Чтение контактов-->
+    <uses-permission android:name="android.permission.WRITE_CONTACTS"/> <!--Запись контактов-->
+    <uses-permission android:name="android.permission.READ_CALENDAR"/> <!--Чтение календаря-->
 
     <application
       android:name=".MainApplication"
