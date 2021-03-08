@@ -1,0 +1,258 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+	<title>be1.ru</title>
+</head>
+<body>
+<h2 style="text-align:center">Разработка мобильного приложения &quot;BirthDate&quot;</h2>
+
+<h3 style="text-align:center">Техническое задание</h3>
+
+<p style="text-align:justify">Необходимо разработать мобильное графическое приложение, предназначенное для информирования о предстоящих днях рождения из телефонного списка контактов. Данное приложение должно присылать уведомление, когда у одного из контактов день рождения в 09:00, а также при входящем вызове от данного контакта выводить напоминание о необходимости его поздравить. Уведомления&nbsp;должны&nbsp;быть различными для простого дня рождения и юбилея. Графический интерфейс должен представлять из себя список контактов, упорядоченный по ближайшим дням рождения и выводить сколько исполняется лет. По нажатии на элемент списка выводится диалоговое окно с номерами данного контакта, записанными в памяти телефона. По долгом нажатии на элемент списка выводится календарь, установленный на ближайший день рождения выбранного контакта.</p>
+
+<h3 style="text-align:center">Ход работы</h3>
+
+<h4 style="text-align:justify">1. Инициализация проекта и подготовка&nbsp;Android окружения</h4>
+
+<p style="text-align:justify">Для создания приложения будет использоваться фреймворк React Native, основанный на языке JavaScript. Для инициализации проекта будет использоваться команда:</p>
+
+<p><span style="font-size:18px"><span style="font-family:Courier New,Courier,monospace">react-native init BirthDate</span></span></p>
+
+<p style="text-align:justify">Данная команда инициализирует пуст<span style="font-family:Times New Roman,Times,serif">ой React Native проект без использования ExpoKit, так как необходимо осуществлять работу в фоновом режиме. В результате был создан каталог</span> BirthDate, в котором находятся папки Android и iOS, предоставляющие дополнительные настройки&nbsp;проекта под соответствующие платформы, а также JavaScript файлы, реализующие базовое&nbsp;React Native приложение, и package.json для работы с npm. Для компиляции проекта под Android платформу необходимо в папке Android создать файл local.properties и прописать&nbsp;путь до SDK в&nbsp;переменную&nbsp;<span style="font-family:&quot;Courier New&quot;,Courier,monospace">sdk.dir&nbsp;</span><span style="font-family:&quot;Times New Roman&quot;,Times,serif">без кавычек.&nbsp;</span></p>
+
+<p style="text-align:justify">В манифесте Android пропишем разрешения, которые потребуются для работы приложения:</p>
+
+<p style="text-align:justify"><span style="font-family:Courier New,Courier,monospace">&lt;uses-permission android:name=&quot;android.permission.INTERNET&quot;/&gt; &lt;!-- Доступ в интернет&nbsp;--&gt;<br />
+&lt;uses-permission android:name=&quot;android.permission.RECEIVE_BOOT_COMPLETED&quot;/&gt;&nbsp;&lt;!--Уведомления--&gt;<br />
+&lt;uses-permission android:name=&quot;android.permission.READ_PHONE_STATE&quot;/&gt;&nbsp;&lt;!--Чтение состояния--&gt;<br />
+&lt;uses-permission android:name=&quot;android.permission.READ_CALL_LOG&quot;/&gt;&nbsp;&lt;!--Чтение вызовов--&gt;<br />
+&lt;uses-permission android:name=&quot;android.permission.READ_CONTACTS&quot;/&gt;&nbsp;&lt;!--Чтение контактов--&gt;<br />
+&lt;uses-permission android:name=&quot;android.permission.WRITE_CONTACTS&quot;/&gt;&nbsp;&lt;!--Запись контактов--&gt;<br />
+&lt;uses-permission android:name=&quot;android.permission.READ_CALENDAR&quot;/&gt;&nbsp;&lt;!--Чтение календаря--&gt;</span></p>
+
+<h4 style="text-align:justify">2. Реализация переходов между экранами</h4>
+
+<p style="text-align:justify">Для перехода между окнами приложения используется пакет&nbsp;<span style="font-family:Courier New,Courier,monospace">react-native-navigator</span><span style="font-family:Times New Roman,Times,serif">. Данный пакет&nbsp;предоставляет различные возможности для перехода между окнами, однако в данной работе используется компонент&nbsp;<span style="font-family:Courier New,Courier,monospace">Stack.Navigator</span></span><span style="font-family:Times New Roman,Times,serif">. Вне зависимости от типа перехода между окнами, компонент представляющий навигатор&nbsp;должен оборачиваться в специальный контейнер:&nbsp;<span style="font-family:Courier New,Courier,monospace">NavigationContainer</span>, содержащий общую логику для перемещений.&nbsp;Навигация в&nbsp;приложении&nbsp;находится в файле Routes.js и представлена следующим образом:</span></p>
+
+<p style="text-align:justify"><span style="font-family:Courier New,Courier,monospace">const Stack = createStackNavigator(); // создание Stack.Navigator</span></p>
+
+<p style="text-align:justify"><span style="font-family:Courier New,Courier,monospace">//JSX структура, возвращаемая компонентом Routes:</span><br />
+<span style="font-family:Courier New,Courier,monospace">&lt;NavigationContainer&gt;<br />
+&nbsp; &lt;Stack.Navigator</span><br />
+<span style="font-family:Courier New,Courier,monospace">&nbsp; &nbsp; </span><span style="font-family:Courier New,Courier,monospace">{/*Настройки header*/}<br />
+&nbsp; &nbsp; screenOptions={({route, navigation}) =&gt; ({<br />
+&nbsp; &nbsp; &nbsp; headerRight: () =&gt;<br />
+&nbsp; &nbsp; &nbsp; &nbsp; route.name === &#39;Home&#39; &amp;&amp; ( //Кнопка для перехода на экран &quot;Info&quot;<br />
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &lt;TouchableOpacity onPress={() =&gt; navigation.navigate(&#39;Info&#39;)}&gt;<br />
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &lt;List.Icon icon=&quot;information-outline&quot; color={Colors.black} /&gt;<br />
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &lt;/TouchableOpacity&gt;<br />
+&nbsp; &nbsp; &nbsp; &nbsp; ),<br />
+&nbsp; &nbsp; })}&gt;<br />
+&nbsp; &nbsp; ... {/*Экраны*/}<br />
+&nbsp; &lt;/Stack.Navigator&gt;<br />
+&lt;/NavigationContainer&gt;</span></p>
+
+<p style="text-align:justify">Компонент представляющий&nbsp;экран&nbsp;&ndash;&nbsp;<span style="font-family:Courier New,Courier,monospace">Stack.Screen</span>. Данный компонент поддерживает большое количество входных аргументов и дочерним элементом принимает функцию, возвращающую компонент с интерфейсом целевого экрана. Навигация происходит с использованием аргумента&nbsp;<span style="font-family:Courier New,Courier,monospace">name</span><span style="font-family:Times New Roman,Times,serif">, который принимает строку и определяет название экрана. Листинг компонента, определяющего путь к главному&nbsp;экрану:</span></p>
+
+<p style="text-align:justify"><span style="font-family:Courier New,Courier,monospace">&lt;Stack.Screen<br />
+&nbsp; name=&quot;Home&quot;<br />
+&nbsp; options={{<br />
+&nbsp; &nbsp; title: &#39;BirthDate&#39;,<br />
+&nbsp; }}&gt;<br />
+&nbsp; {() =&gt; &lt;HomeScreen {...props} /&gt;}<br />
+&lt;/Stack.Screen&gt;</span></p>
+
+<h4 style="text-align:justify">3. Графический интерфейс</h4>
+
+<p style="text-align:justify">Графический интерфейс приложения основан на компонентах из пакета&nbsp;<span style="font-size:18px"><span style="font-family:Courier New,Courier,monospace">react-native-paper</span></span>. Данный пакет предоставляет большое количество компонентов графического интерфейса, которые настроены для&nbsp;работы с Material Design гайдлайном.</p>
+
+<p style="text-align:justify">Домашний экран&nbsp;&ndash;&nbsp;<span style="font-family:Courier New,Courier,monospace">HomeScreen</span><span style="font-family:Times New Roman,Times,serif">, представляет из себя список контактов, диалоговое окно, всплывающее по нажатии на контакт,&nbsp;и плавающую кнопку в правом нижнем углу. Для реализации списка используются компоненты&nbsp;</span><span style="font-family:Courier New,Courier,monospace">ListItem</span><span style="font-family:Times New Roman,Times,serif">&nbsp;представляющие из себя обёртку над&nbsp;</span><span style="font-family:Courier New,Courier,monospace">List.Item</span><span style="font-family:Times New Roman,Times,serif">. Для обеспечения возможности прокрутки эти компоненты обёрнуты в&nbsp;</span><span style="font-family:Courier New,Courier,monospace">ScrollView</span><span style="font-family:Times New Roman,Times,serif">. Каждый из&nbsp;</span><span style="font-family:Courier New,Courier,monospace">ListItem</span><span style="font-family:Times New Roman,Times,serif">&nbsp;содержит иконку, которая при соответствии текущей даты дню рождения горит красным, имя контакта, исполняемое количество лет и саму дату. JSX структура&nbsp;</span><span style="font-family:Courier New,Courier,monospace">ListItem</span><span style="font-family:Times New Roman,Times,serif">:</span></p>
+
+<p style="text-align:justify"><span style="font-family:Courier New,Courier,monospace">&lt;List.Item<br />
+&nbsp; title={props.name} {/*Имя контакта*/}<br />
+&nbsp; description={<br />
+&nbsp; &nbsp; props.birthdate &amp;&amp; dateFormat(props.birthdate, &#39;dd mmmm yyyy&#39;)&nbsp;/*Дата*/<br />
+&nbsp; }<br />
+&nbsp; left={<br />
+&nbsp; &nbsp; props.birthdate &amp;&amp;<br />
+&nbsp; &nbsp; (() =&gt; (<br />
+&nbsp; &nbsp; &nbsp; &lt;List.Icon<br />
+&nbsp; &nbsp; &nbsp; &nbsp; icon=&quot;cake&quot;<br />
+&nbsp; &nbsp; &nbsp; &nbsp; color={<br />
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; //Условие подсветки<br />
+&nbsp; &nbsp; &nbsp; &nbsp; }<br />
+&nbsp; &nbsp; &nbsp; /&gt;<br />
+&nbsp; &nbsp; ))<br />
+&nbsp; }&nbsp;{/*Индикатор дня рождения*/}<br />
+&nbsp; right={props.birthdate &amp;&amp; (() =&gt; &lt;Text&gt;{props.age} years&lt;/Text&gt;)}&nbsp;{/*Возраст*/}<br />
+&nbsp; onPress={props.onPress}&nbsp;{/*Функция по&nbsp;клику*/}<br />
+&nbsp; onLongPress={() =&gt; {<br />
+&nbsp; &nbsp; Linking.openURL(<br />
+&nbsp; &nbsp; &nbsp; `content://com.android.calendar/time/${props.birthdate.getTime()}`,<br />
+&nbsp; &nbsp; );<br />
+&nbsp; }}&nbsp;{/*По долгом нажатии открытие календаря*/}</span><br />
+<span style="font-family:Courier New,Courier,monospace">&nbsp; {/*...Стили*/}<br />
+/&gt;</span></p>
+
+<p style="text-align:justify">Плавающая кнопка в правом нижнем углу представлена компонентом&nbsp;<span style="font-family:Courier New,Courier,monospace">RoundButton</span>, представляющим из себя обёртку над компонентом&nbsp;<span style="font-family:Courier New,Courier,monospace">FAB</span>. Данный компонент предоставляет поддержку единственного аргумента&nbsp;<span style="font-family:Courier New,Courier,monospace">onClick</span>, использующегося&nbsp;для определения функции, которая будет выполнена по нажатию на кнопку. Данная кнопка используется для открытия календаря с текущим на момент нажатия числом.&nbsp;JSX представление данного компонента:</p>
+
+<p style="text-align:justify"><span style="font-family:Courier New,Courier,monospace">&lt;FAB style={styles.fab} icon=&quot;calendar&quot; onPress={props.onClick} /&gt;</span></p>
+
+<p style="text-align:justify">Диалоговое окно, появляющееся при нажатии на элемент списка, представляет из себя&nbsp;JSX теги, которые скрыты на момент взаимодействия с главным экраном и видимы по нажатии на элемент списка. Видимость&nbsp;диалогового окна отображается в логической переменной состояния&nbsp;<span style="font-family:Courier New,Courier,monospace">visible</span>. Реализация диалогового окна представлена пакетом&nbsp;<span style="font-family:Courier New,Courier,monospace">react-native-dialog</span>&nbsp;и представлена в приложении следующим образом:</p>
+
+<p style="text-align:justify"><span style="font-family:Courier New,Courier,monospace">&lt;Dialog.Container visible={this.state.visible} {/*Видимость диалогового окна*/}&gt;<br />
+&nbsp; &lt;Dialog.Title&gt;Choose the phone number:&lt;/Dialog.Title&gt;&nbsp;{/*Заголовок диалогового окна*/}<br />
+&nbsp; {/*...Содержимое диалогового окна*/}<br />
+&nbsp; &lt;Dialog.Button<br />
+&nbsp; &nbsp; label=&quot;Cancel&quot;<br />
+&nbsp; &nbsp; onPress={() =&gt; this.setState({visible: false})}<br />
+&nbsp; /&gt;&nbsp;{/*Кнопка отмены*/}<br />
+&lt;/Dialog.Container&gt;</span></p>
+
+<p style="text-align:justify">Главный экран должен поддерживать два основных состояния: состояние загрузки контактов и состояние отображения список контактов. Состояние загрузки реализуется через вывод индикатора загрузки, а состояние отображения списка контактов реализуется через вывод списка компонентов&nbsp;<span style="font-family:Courier New,Courier,monospace">ListItem</span>. Данное состояние определяется слудующим образом:</p>
+
+<p style="text-align:justify"><span style="font-family:Courier New,Courier,monospace">{this.state.contacts === null ? (<br />
+&nbsp; &lt;View style={styles.indicator}&gt; {/*Индикатор загрузки*/}<br />
+&nbsp; &nbsp; &lt;ActivityIndicator size=&quot;large&quot; color=&quot;red&quot; /&gt;<br />
+&nbsp; &lt;/View&gt;<br />
+) : (<br />
+&nbsp; &lt;ScrollView&gt;</span><br />
+<span style="font-family:Courier New,Courier,monospace">&nbsp; &nbsp; {/*Список компонентов ListItem*/}<br />
+&nbsp; &lt;/ScrollView&gt;<br />
+)}</span></p>
+
+<p style="text-align:justify">Для вывода списка контактов через компоненты&nbsp;<span style="font-family:Courier New,Courier,monospace">ListItem</span>&nbsp;используется массив контактов через соответствующий запрос. Перебор массива осуществляется следующим образом:</p>
+
+<p style="text-align:justify"><span style="font-family:Courier New,Courier,monospace">{this.state.contacts.map((item, index) =&gt; {<br />
+&nbsp; return (<br />
+&nbsp; &nbsp; &lt;ListItem<br />
+&nbsp; &nbsp; &nbsp; key={item.rawContactId}<br />
+&nbsp; &nbsp; &nbsp; contact={item}<br />
+&nbsp; &nbsp; &nbsp; name={item.displayName}<br />
+&nbsp; &nbsp; &nbsp; birthdate={item.birthday}<br />
+&nbsp; &nbsp; &nbsp; age={item.age + 1}<br />
+&nbsp; &nbsp; &nbsp; onPress={() =&gt; {<br />
+&nbsp; &nbsp; &nbsp; &nbsp; this.setState({currentContact: item, visible: true});<br />
+&nbsp; &nbsp; &nbsp; }}<br />
+&nbsp; &nbsp; /&gt;<br />
+&nbsp; );<br />
+})}</span></p>
+
+<p style="text-align:justify">В результате будет получена последовательность JSX тегов, каждый из которых представляет элемент списка.</p>
+
+<h4 style="text-align:justify">4. Получение списка контактов</h4>
+
+<p style="text-align:justify">Для получения списка контактов будет использоваться пакет&nbsp;<span style="font-family:Courier New,Courier,monospace">react-native-contacts</span>. Данный пакет предоставляет API для работы с контактами. Подавляющая часть функций является асинхронными, так как архитектура Android и iOS не позволяет осуществлять такие операции в основном потоке. В данном проекте&nbsp;будут использоваться лишь операции для чтения списка контактов.</p>
+
+<p style="text-align:justify">Для получения списка контактов необходимо иметь соответствующее разрешение от ОС (<span style="font-family:Courier New,Courier,monospace">READ_CONTACTS</span>). Данное разрешение уже присутствует в Манифесте Android, однако необходимо также, чтобы пользователь подтвердил использование данного резрешения. Это делается с помощью следующих операций:</p>
+
+<p style="text-align:justify"><span style="font-family:Courier New,Courier,monospace">Contacts.checkPermission().then((permission) =&gt; {</span><br />
+<span style="font-family:Courier New,Courier,monospace">&nbsp; //Результат запроса разрешения</span><br />
+<span style="font-family:Courier New,Courier,monospace">&nbsp; if (permission === &quot;undefined&quot; || permission === &quot;denied&quot;) {<br />
+&nbsp; &nbsp; //Если нет разрешения делаем запрос</span><br />
+<span style="font-family:Courier New,Courier,monospace">&nbsp; &nbsp; PermissionsAndroid.request(<br />
+&nbsp; &nbsp; &nbsp; PermissionsAndroid.PERMISSIONS.READ_CONTACTS<br />
+&nbsp; &nbsp; ).then((permission) =&gt; {<br />
+&nbsp; &nbsp; &nbsp; //Проверка выбора пользователя<br />
+&nbsp; &nbsp; });<br />
+&nbsp; } else if (permission === &quot;authorized&quot;) {<br />
+&nbsp; &nbsp; //Действия при подтверждённом разрешении<br />
+&nbsp; } else //Непредвиденное поведение;<br />
+});</span></p>
+
+<p style="text-align:justify">Для чтения всех&nbsp;контактов используется функция&nbsp;<span style="font-family:Courier New,Courier,monospace">Contacts.getAll()</span>, которая возвращает промис, по выполнению которого возвращается объект с массивом из списка контактов. Результат будем сохранять в состоянии компонента, вызвавшего данную функцию.&nbsp;В коде это выглядит следующим образом:</p>
+
+<p style="text-align:justify"><span style="font-family:Courier New,Courier,monospace">Contacts.getAll().then((contacts) =&gt;<br />
+&nbsp; this.setState({ contacts: filterContacts(contacts, isBirthday) })<br />
+);</span></p>
+
+<p style="text-align:justify">Функция&nbsp;<span style="font-family:Courier New,Courier,monospace">filterContacts</span>&nbsp;предназначена для фильтрации и сортировки&nbsp;полученного списка контактов. Фильтрация необходима для того, чтобы отсеять контакты, для которых пользователь не установил день рождения:</p>
+
+<p style="text-align:justify"><span style="font-family:Courier New,Courier,monospace">const newContacts = contacts.filter((item) =&gt;<br />
+&nbsp; isBirthday ? item.birthday !== undefined : item.birthday === undefined<br />
+);</span></p>
+
+<p style="text-align:justify">Сортировка позволяет отсортировать контакты таким образом, чтобы дни рождения отсортировалися относительно сегодняшней даты. Для этого необходимо перевести дни рождения в объекты даты с текущим годом и сравнить их с сегодняшним днём, выделив два списка: от начала года до текущего дня и от текущего дня до конца года:</p>
+
+<p><span style="font-family:Courier New,Courier,monospace">newContacts.sort((a, b) =&gt; { //сортировка по возрастанию<br />
+&nbsp; return a.birthday &gt; b.birthday;<br />
+});</span></p>
+
+<p><span style="font-family:Courier New,Courier,monospace">const bellowContacts = newContacts.filter((item) =&gt; {&nbsp;//дни&nbsp;рождения от начала года до текущего&nbsp;дня<br />
+&nbsp; return item.birthday &lt; today;<br />
+});</span></p>
+
+<p><span style="font-family:Courier New,Courier,monospace">const afterContacts = newContacts.filter((item) =&gt; {&nbsp;//дни&nbsp;рождения от текущего дня до конца года<br />
+&nbsp; return item.birthday &gt;= today;<br />
+});</span></p>
+
+<p style="text-align:justify">После всех преобразований списка контактов необходимо модифицировать список <span style="font-family:Courier New,Courier,monospace">bellowContacts</span>, прибавив к один год к дате рождения, и&nbsp;соединить два получившихся списка в следующей последовательности:</p>
+
+<p><span style="font-family:Courier New,Courier,monospace">return afterContacts.concat(bellowContacts);</span></p>
+
+<p style="text-align:justify">Жизненный цикл активности&nbsp;в архитектуре Android позволяет приложению продолжать&nbsp;оставаться активным в свёрнутом режиме, поэтому необходимо обработать ситуацию, когда пользователь, свернув приложение, изменит один контактов в своей телефонной книге. Необходимо, чтобы при возврате в приложение происходила перезагрузка списка контактов. Это будет осуществляется&nbsp;через сохранение состояния приложения. Для этого вводим в состояние домашнего экрана переменную состояния <span style="font-family:Courier New, Courier, monospace">appState</span>, которая при инициализации компонента хранит первоначальное состояние компонента:</p>
+
+<p style="text-align:justify"><span style="font-family:Courier New,Courier,monospace">appState: AppState.currentState</span></p>
+
+<p style="text-align:justify">Затем привязываем прослушиватель к&nbsp;изменению&nbsp;состояния&nbsp;приложения, который выполняет функцию <span style="font-family:Courier New,Courier,monospace">this.handleAppStateChange</span>:</p>
+
+<p><span style="font-family:Courier New,Courier,monospace">componentDidMount() {<br />
+&nbsp; AppState.addEventListener(&#39;change&#39;, this.handleAppStateChange);<br />
+&nbsp; this.getContacts();<br />
+}</span></p>
+
+<p><span style="font-family:Courier New,Courier,monospace">componentWillUnmount() {<br />
+&nbsp; AppState.removeEventListener(&#39;change&#39;, this.handleAppStateChange);<br />
+}</span></p>
+
+<p style="text-align:justify">Функция&nbsp;<span style="font-family:Courier New,Courier,monospace">this.handleAppStateChange</span>&nbsp;производит сохранение текущего состояния приложения,&nbsp;осуществляет считывание контактов из телефонной книги и пересоздаёт запланированные уведомления.&nbsp;</p>
+
+<h4>5. Уведомления</h4>
+
+<p style="text-align:justify">Для отправки уведомлений используется пакет&nbsp;<span style="font-family:Courier New,Courier,monospace">react-native-push-notification</span>. Данный пакет предоставляет возможность отправки локальных уведомлений и запланированных уведомлений. Все обработчики уведомлений в данном проекте находятся в файле NotificationCenter.js&nbsp;Предварительно для отправки уведомлений необходимо создать канал. У канала есть идентификатор, который является уникальным для каждого канала и представляет из себя строку из символов. В проекте используется идентификатор&nbsp;<span style="font-family:Courier New,Courier,monospace">&#39;552h4f5d&#39;.</span>&nbsp;Канал&nbsp;создаётся следующим образом:</p>
+
+<p style="text-align:justify"><span style="font-family:Courier New,Courier,monospace">PushNotification.channelExists(&#39;552h4f5d&#39;, (res) =&gt; { //Проверка на существование канала<br />
+&nbsp; if (!res)<br />
+&nbsp; &nbsp; PushNotification.createChannel( //создание канала<br />
+&nbsp; &nbsp; &nbsp; {<br />
+&nbsp; &nbsp; &nbsp; &nbsp; channelId: &#39;552h4f5d&#39;,<br />
+&nbsp; &nbsp; &nbsp; &nbsp; channelName: &#39;birthday&#39;,<br />
+&nbsp; &nbsp; &nbsp; },<br />
+&nbsp; &nbsp; &nbsp; (res) =&gt; {<br />
+&nbsp; &nbsp; &nbsp; &nbsp; res ? configuration() : console.log(&quot;Channel can&#39;t be created.&quot;);<br />
+&nbsp; &nbsp; &nbsp; },<br />
+&nbsp; &nbsp; );<br />
+&nbsp; else configuration(); //Конфигурация<br />
+});</span></p>
+
+<p style="text-align:justify">Запланированные уведомления используются&nbsp;для напоминания&nbsp;пользователю&nbsp;о том, что в текущий день будет день рождения у конкретного пользователя из списка контактов. Для создания таких уведомлений используется функция&nbsp;<span style="font-family:Courier New,Courier,monospace">pushNotification</span>. Данная функция создаёт уведомление для каждого контакта из переданного&nbsp;списка. Для создания запланированного уведомления используется&nbsp;следующий код:</p>
+
+<p style="text-align:justify"><span style="font-family:Courier New,Courier,monospace">PushNotification.localNotificationSchedule({<br />
+&nbsp; channelId: &#39;552h4f5d&#39;, //Id канала<br />
+&nbsp; vibration: 100, //Время вибрации в миллисекундах<br />
+&nbsp; message: `Today ${<br />
+&nbsp; &nbsp; (contact.age + 1) % 10 === 0 ? &#39;anniversary&#39; : &#39;birthday&#39;<br />
+&nbsp; } in ${contact.displayName}`, //выводимое сообщение<br />
+&nbsp; date: dateOfNotification, //день и время выдачи уведомления<br />
+&nbsp; userInfo: contact, //<br />
+});</span></p>
+
+<p style="text-align:justify">Локальные уведомления используются при входящем вызове от контакта, у которого&nbsp;текущий день является днём рождения. Предварительно необходимо сделать прослушиватель входящих вызовов, который реализуется через пакет&nbsp;<span style="font-family:Courier New,Courier,monospace">react-native-call-detection</span>. Он позволяет отслеживать все состояния вызова&nbsp;в момент его осуществления, кроме исходящего. В рамках данного проекта необходимо отслеживание лишь входящего вызова, поэтому прослушивание будет инициализироваться в App.js:</p>
+
+<p style="text-align:justify"><span style="font-family:Courier New,Courier,monospace">this.callDetector = new CallDetectorManager((event, phoneNumber) =&gt; {<br />
+&nbsp; if (event === &#39;Incoming&#39;) sendNotificationByPhoneNumber(phoneNumber);<br />
+}, true);</span></p>
+
+<p style="text-align:justify">Функция <span style="font-family:Courier New,Courier,monospace">sendNotificationByPhoneNumber</span>&nbsp;предназначена для получения контакта по номеру телефона и сравнения даты рождения полученного контакта с текущей датой. В результате&nbsp;совпадения дат происходит создание локального уведомления. Локальное уведомление инициализируется следующим образом:</p>
+
+<p style="text-align:justify"><span style="font-family:Courier New,Courier,monospace">PushNotification.localNotification({<br />
+&nbsp; channelId: &#39;552h4f5d&#39;, //Id канала<br />
+&nbsp; vibration: 100, //Время вибрации в миллисекундах<br />
+&nbsp; message: `Don&#39;t forget to congragulate this contact.`, //Выводимое сообщение<br />
+});</span></p>
+
+<h4 style="text-align:justify">6. Вывод</h4>
+
+<p style="text-align:justify">В результате проделанной работы был разработан проект для платформы Android на языке JS с использованием фреймворка React Native. Конечное приложение является полностью нативным и реализует весь функционал определённый в техническом задании.</p>
+</body>
+</html>
